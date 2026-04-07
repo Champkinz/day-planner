@@ -1,8 +1,8 @@
 # DayPlanner
 
-A minimal macOS daily planner with a Kanban view.
+A minimal macOS daily planner with glass UI and Kanban view.
 
-![DayPlanner](logo.png)
+<img src="logo.png" width="128" alt="DayPlanner">
 
 ## Features
 
@@ -12,10 +12,12 @@ A minimal macOS daily planner with a Kanban view.
 - Menu bar quick access
 - Adaptive glass UI (light and dark mode)
 - Drag-and-drop reordering
+- Auto-updates via Sparkle
+- Data export/import for backups
 
 ## Requirements
 
-- macOS 14.0 or later
+- macOS 26.0 (Tahoe) or later
 
 ## Install
 
@@ -24,9 +26,15 @@ A minimal macOS daily planner with a Kanban view.
 3. Drag DayPlanner to `/Applications`
 4. Right-click and select **Open** on first launch (required for unsigned apps)
 
-## Auto-Updates
+## Data Storage
 
-The app checks for updates automatically via Sparkle.
+Your todos and recurring todos are stored as JSON files in:
+
+```
+~/Library/Application Support/DayPlanner/
+```
+
+You can export and import your data from **Settings > Data > Backup** to protect against data loss when uninstalling.
 
 ## Building from Source
 

@@ -105,12 +105,15 @@ struct SettingsView: View {
     }
 
     private var aboutSettings: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "checklist")
-                .font(.system(size: 64))
-                .foregroundColor(.blue)
+        VStack(spacing: 16) {
+            if let appIcon = NSImage(named: "AppIcon") {
+                Image(nsImage: appIcon)
+                    .resizable()
+                    .frame(width: 80, height: 80)
+                    .cornerRadius(16)
+            }
 
-            Text("Day Planner")
+            Text("DayPlanner")
                 .font(.title)
                 .fontWeight(.bold)
 
@@ -118,7 +121,7 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
 
-            Text("A simple daily planning app with recurring todos")
+            Text("A minimal daily planner with list and kanban views, recurring todos, and menu bar access.")
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
@@ -126,11 +129,26 @@ struct SettingsView: View {
 
             Spacer()
 
-            Button("Check for Updates...") {
-                updater.checkForUpdates()
+            VStack(spacing: 10) {
+                Button("Check for Updates...") {
+                    updater.checkForUpdates()
+                }
+
+                HStack(spacing: 16) {
+                    Button("GitHub") {
+                        NSWorkspace.shared.open(URL(string: "https://github.com/Champkinz/day-planner")!)
+                    }
+                    .buttonStyle(.link)
+
+                    Button("Report a Bug") {
+                        NSWorkspace.shared.open(URL(string: "https://github.com/Champkinz/day-planner/issues/new")!)
+                    }
+                    .buttonStyle(.link)
+                }
+                .font(.caption)
             }
 
-            Text("Made with SwiftUI")
+            Text("Made by Charana")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
