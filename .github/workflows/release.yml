@@ -1,20 +1,18 @@
-# NOTE: macOS 26 (Tahoe) / Xcode 26 may not be available on GitHub-hosted
-# runners yet. If the build fails due to an unsupported deployment target,
-# either lower the minimum deployment target in the Xcode project or use a
-# self-hosted runner with the required toolchain installed.
+# Builds the app on tag push. The zip must be signed locally with
+# Sparkle EdDSA keys before uploading to GitHub Releases.
+# This workflow builds and uploads an UNSIGNED zip as a draft release.
+# After downloading, sign it with `sign_update` and publish the release.
 
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  build:
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -39,8 +37,8 @@ jobs:
       - name: Package app
         run: ditto -c -k --keepParent "build/Build/Products/Release/DayPlanner.app" DayPlanner.zip
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: DayPlanner.zip
-          generate_release_notes: true
+          name: DayPlanner
+          path: DayPlanner.zip
