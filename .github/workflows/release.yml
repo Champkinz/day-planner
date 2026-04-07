@@ -1,0 +1,43 @@
+# NOTE: macOS 26 (Tahoe) / Xcode 26 may not be available on GitHub-hosted
+# runners yet. If the build fails due to an unsupported deployment target,
+# either lower the minimum deployment target in the Xcode project or use a
+# self-hosted runner with the required toolchain installed.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Resolve Swift packages
+        run: xcodebuild -project DayPlanner.xcodeproj -scheme DayPlanner -resolvePackageDependencies
+
+      - name: Build Release
+        run: >
+          xcodebuild
+          -project DayPlanner.xcodeproj
+          -scheme DayPlanner
+          -configuration Release
+          -derivedDataPath build/
+          CODE_SIGN_IDENTITY="-"
+          build
+
+      - name: Package app
+        run: ditto -c -k --keepParent "build/Build/Products/Release/DayPlanner.app" DayPlanner.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: DayPlanner.zip
+          generate_release_notes: true
