@@ -3,6 +3,24 @@
   <channel>
     <title>DayPlanner</title>
     <item>
+      <title>Version 1.1.0</title>
+      <sparkle:version>2</sparkle:version>
+      <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+      <pubDate>Mon, 07 Apr 2026 12:00:00 +0000</pubDate>
+      <description><![CDATA[
+        <ul>
+          <li>Added data export/import for backup protection</li>
+          <li>Added Sparkle auto-update support</li>
+        </ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/Champkinz/day-planner/releases/download/v1.1.0/DayPlanner.zip"
+        length="4912147"
+        type="application/octet-stream"
+        sparkle:edSignature="CKNrS+rBoR5dk8CfpncU3oIGJKNrBzUvPwBCRYx8p6aKmUSCK32MNKBT1bt7BJ04F40YFKxFrrJsZA6xXxB8AA=="
+      />
+    </item>
+    <item>
       <title>Version 1.0.0</title>
       <sparkle:version>1</sparkle:version>
       <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
