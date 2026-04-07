@@ -55,7 +55,6 @@
 				7B9CB6982F0682DC0046A15B /* Sources */,
 				7B9CB6992F0682DC0046A15B /* Frameworks */,
 				7B9CB69A2F0682DC0046A15B /* Resources */,
-				A1B2C3D40000000000000010 /* Copy Sparkle XPC Services */,
 			);
 			buildRules = (
 			);
@@ -129,22 +128,6 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		A1B2C3D40000000000000010 /* Copy Sparkle XPC Services */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Copy Sparkle XPC Services";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "SPARKLE_FRAMEWORK=$(find \"${BUILD_DIR}\" -path '*/Sparkle.framework' -maxdepth 5 | head -1)\nif [ -z \"$SPARKLE_FRAMEWORK\" ]; then\n  SPARKLE_FRAMEWORK=$(find \"${DERIVED_DATA_DIR:-$BUILD_DIR/..}\" -path '*/Sparkle.xcframework/macos-*/Sparkle.framework' -maxdepth 10 | head -1)\nfi\nif [ -n \"$SPARKLE_FRAMEWORK\" ]; then\n  XPC_SOURCE=\"$SPARKLE_FRAMEWORK/Versions/B/XPCServices\"\n  XPC_DEST=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/XPCServices\"\n  if [ -d \"$XPC_SOURCE\" ]; then\n    mkdir -p \"$XPC_DEST\"\n    cp -Rf \"$XPC_SOURCE/\"* \"$XPC_DEST/\"\n  fi\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
 		7B9CB6A52F0682DD0046A15B /* Debug */ = {
@@ -284,7 +267,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dayplanner.DayPlanner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -316,7 +299,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dayplanner.DayPlanner;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
