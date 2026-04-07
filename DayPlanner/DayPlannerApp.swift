@@ -13,11 +13,6 @@ import Sparkle
 struct DayPlannerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var viewModel = TodoListViewModel.shared
-    private let updaterController = SPUStandardUpdaterController(
-        startingUpdater: true,
-        updaterDelegate: nil,
-        userDriverDelegate: nil
-    )
 
     var body: some Scene {
         // Main window
@@ -29,13 +24,13 @@ struct DayPlannerApp: App {
         .windowToolbarStyle(.unified)
         .commands {
             CommandGroup(after: .appInfo) {
-                CheckForUpdatesView(updater: updaterController.updater)
+                CheckForUpdatesView(updater: appDelegate.updaterController.updater)
             }
         }
 
         // Settings window
         Settings {
-            SettingsView(updater: updaterController.updater)
+            SettingsView(updater: appDelegate.updaterController.updater)
                 .environmentObject(viewModel)
         }
     }
@@ -69,6 +64,11 @@ final class CheckForUpdatesViewModel: ObservableObject {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
     var menuBarManager: MenuBarManager?
     var windowManager: WindowManager?
     private let viewModel = TodoListViewModel.shared
