@@ -1,18 +1,15 @@
-# Builds the app on tag push. The zip must be signed locally with
-# Sparkle EdDSA keys before uploading to GitHub Releases.
-# This workflow builds and uploads an UNSIGNED zip as a draft release.
-# After downloading, sign it with `sign_update` and publish the release.
-
 name: Release
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build-and-release:
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -37,8 +34,71 @@ jobs:
       - name: Package app
         run: ditto -c -k --keepParent "build/Build/Products/Release/DayPlanner.app" DayPlanner.zip
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Sign with Sparkle EdDSA key
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          SIGN_TOOL=$(find build/SourcePackages/artifacts -name "sign_update" -type f | head -1)
+          if [ -z "$SIGN_TOOL" ]; then
+            echo "sign_update not found, searching broader..."
+            SIGN_TOOL=$(find build/ -name "sign_update" -type f | head -1)
+          fi
+          echo "Using sign tool: $SIGN_TOOL"
+          SIGNATURE=$("$SIGN_TOOL" DayPlanner.zip --ed-key-file <(echo -n "$SPARKLE_PRIVATE_KEY") 2>&1)
+          echo "Signature output: $SIGNATURE"
+          # Extract edSignature and length
+          ED_SIG=$(echo "$SIGNATURE" | grep -o 'sparkle:edSignature="[^"]*"' | sed 's/sparkle:edSignature="//;s/"//')
+          LENGTH=$(echo "$SIGNATURE" | grep -o 'length="[^"]*"' | sed 's/length="//;s/"//')
+          echo "ED_SIGNATURE=$ED_SIG" >> $GITHUB_ENV
+          echo "ZIP_LENGTH=$LENGTH" >> $GITHUB_ENV
+
+      - name: Get version info
+        run: |
+          VERSION=$(defaults read "$(pwd)/build/Build/Products/Release/DayPlanner.app/Contents/Info.plist" CFBundleShortVersionString)
+          BUILD=$(defaults read "$(pwd)/build/Build/Products/Release/DayPlanner.app/Contents/Info.plist" CFBundleVersion)
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_BUILD=$BUILD" >> $GITHUB_ENV
+          echo "Version: $VERSION, Build: $BUILD"
+
+      - name: Update appcast.xml
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          PUB_DATE=$(date -u "+%a, %d %b %Y %H:%M:%S +0000")
+          cat > appcast.xml << APPCAST_EOF
+          <?xml version="1.0" standalone="yes"?>
+          <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+            <channel>
+              <title>DayPlanner</title>
+              <item>
+                <title>Version ${APP_VERSION}</title>
+                <sparkle:version>${APP_BUILD}</sparkle:version>
+                <sparkle:shortVersionString>${APP_VERSION}</sparkle:shortVersionString>
+                <pubDate>${PUB_DATE}</pubDate>
+                <enclosure
+                  url="https://github.com/Champkinz/day-planner/releases/download/${TAG_NAME}/DayPlanner.zip"
+                  length="${ZIP_LENGTH}"
+                  type="application/octet-stream"
+                  sparkle:edSignature="${ED_SIGNATURE}"
+                />
+              </item>
+            </channel>
+          </rss>
+          APPCAST_EOF
+          # Remove leading whitespace from heredoc
+          sed -i '' 's/^          //' appcast.xml
+
+      - name: Commit appcast.xml
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git add appcast.xml
+          git commit -m "Update appcast.xml for ${APP_VERSION}" || echo "No changes to commit"
+          git push origin main
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: DayPlanner
-          path: DayPlanner.zip
+          files: DayPlanner.zip
+          generate_release_notes: true
