@@ -1,6 +1,6 @@
 # DayPlanner
 
-A minimal macOS daily planner with glass UI and Kanban view.
+A minimal macOS daily planner with a Kanban view.
 
 ![DayPlanner](logo.png)
 
