@@ -36,6 +36,12 @@ Your todos and recurring todos are stored as JSON files in:
 
 You can export and import your data from **Settings > Data > Backup** to protect against data loss when uninstalling.
 
+## Updates
+
+The app checks for updates automatically on launch. You can also check manually from **DayPlanner menu > Check for Updates** or **Settings > About > Check for Updates**.
+
+Updates are delivered through [Sparkle](https://sparkle-project.org) and signed with EdDSA keys for security.
+
 ## Building from Source
 
 1. Clone the repository
