@@ -3,6 +3,23 @@
   <channel>
     <title>DayPlanner</title>
     <item>
+      <title>Version 1.4.0</title>
+      <sparkle:version>5</sparkle:version>
+      <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
+      <pubDate>Mon, 07 Apr 2026 14:00:00 +0000</pubDate>
+      <description><![CDATA[
+        <ul>
+          <li>Fixed auto-update installer</li>
+        </ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/Champkinz/day-planner/releases/download/v1.4.0/DayPlanner.zip"
+        length="5007356"
+        type="application/octet-stream"
+        sparkle:edSignature="JKVEOFI7LvnU6AsTa+E1L49+zsww+Ala2IdSkQsMMRIoeokH5BmMZGLnagxrmPuv09rZks5WSIM5pox1FfGLDw=="
+      />
+    </item>
+    <item>
       <title>Version 1.2.0</title>
       <sparkle:version>3</sparkle:version>
       <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
