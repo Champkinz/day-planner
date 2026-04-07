@@ -1,0 +1,102 @@
+name: Bump Version & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g. 1.8.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  bump-and-release:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Bump version in project
+        run: |
+          # Increment CURRENT_PROJECT_VERSION
+          CURRENT=$(grep -m1 'CURRENT_PROJECT_VERSION' DayPlanner.xcodeproj/project.pbxproj | sed 's/[^0-9]//g')
+          NEXT=$((CURRENT + 1))
+          sed -i '' "s/CURRENT_PROJECT_VERSION = ${CURRENT};/CURRENT_PROJECT_VERSION = ${NEXT};/g" DayPlanner.xcodeproj/project.pbxproj
+
+          # Update MARKETING_VERSION
+          sed -i '' "s/MARKETING_VERSION = [^;]*;/MARKETING_VERSION = ${{ github.event.inputs.version }};/g" DayPlanner.xcodeproj/project.pbxproj
+
+          echo "APP_BUILD=$NEXT" >> $GITHUB_ENV
+          echo "Bumped to v${{ github.event.inputs.version }} (build $NEXT)"
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Resolve Swift packages
+        run: xcodebuild -project DayPlanner.xcodeproj -scheme DayPlanner -resolvePackageDependencies
+
+      - name: Build Release
+        run: >
+          xcodebuild
+          -project DayPlanner.xcodeproj
+          -scheme DayPlanner
+          -configuration Release
+          -derivedDataPath build/
+          CODE_SIGN_IDENTITY="-"
+          build
+
+      - name: Package and sign
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          ditto -c -k --keepParent "build/Build/Products/Release/DayPlanner.app" DayPlanner.zip
+          SIGN_TOOL=$(find build/SourcePackages/artifacts -name "sign_update" -type f | head -1)
+          SIGNATURE=$("$SIGN_TOOL" DayPlanner.zip --ed-key-file <(echo -n "$SPARKLE_PRIVATE_KEY") 2>&1)
+          ED_SIG=$(echo "$SIGNATURE" | grep -o 'sparkle:edSignature="[^"]*"' | sed 's/sparkle:edSignature="//;s/"//')
+          LENGTH=$(echo "$SIGNATURE" | grep -o 'length="[^"]*"' | sed 's/length="//;s/"//')
+          echo "ED_SIGNATURE=$ED_SIG" >> $GITHUB_ENV
+          echo "ZIP_LENGTH=$LENGTH" >> $GITHUB_ENV
+
+      - name: Update appcast.xml
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PUB_DATE=$(date -u "+%a, %d %b %Y %H:%M:%S +0000")
+          cat > appcast.xml << EOF
+          <?xml version="1.0" standalone="yes"?>
+          <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+            <channel>
+              <title>DayPlanner</title>
+              <item>
+                <title>Version ${VERSION}</title>
+                <sparkle:version>${APP_BUILD}</sparkle:version>
+                <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+                <pubDate>${PUB_DATE}</pubDate>
+                <enclosure
+                  url="https://github.com/Champkinz/day-planner/releases/download/v${VERSION}/DayPlanner.zip"
+                  length="${ZIP_LENGTH}"
+                  type="application/octet-stream"
+                  sparkle:edSignature="${ED_SIGNATURE}"
+                />
+              </item>
+            </channel>
+          </rss>
+          EOF
+          sed -i '' 's/^          //' appcast.xml
+
+      - name: Commit and tag
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add DayPlanner.xcodeproj/project.pbxproj appcast.xml
+          git commit -m "v${VERSION}"
+          git tag "v${VERSION}"
+          git push origin main --tags
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          files: DayPlanner.zip
+          generate_release_notes: true
