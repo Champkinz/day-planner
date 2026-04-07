@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 import Sparkle
 
 struct SettingsView: View {
@@ -80,6 +81,18 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Backup") {
+                HStack(spacing: 12) {
+                    Button("Export Data...") {
+                        exportData()
+                    }
+
+                    Button("Import Data...") {
+                        importData()
+                    }
+                }
+            }
+
             Section("Danger Zone") {
                 Button("Clear All Data") {
                     clearAllData()
@@ -122,6 +135,58 @@ struct SettingsView: View {
                 .foregroundColor(.secondary)
         }
         .padding()
+    }
+
+    private func exportData() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "DayPlanner-Backup.json"
+        panel.title = "Export DayPlanner Data"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        do {
+            let data = try persistenceService.exportData()
+            try data.write(to: url, options: .atomic)
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Export Failed"
+            alert.informativeText = error.localizedDescription
+            alert.runModal()
+        }
+    }
+
+    private func importData() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.title = "Import DayPlanner Data"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        let confirm = NSAlert()
+        confirm.messageText = "Import Data?"
+        confirm.informativeText = "This will replace all existing todos and recurring todos with the imported data."
+        confirm.alertStyle = .warning
+        confirm.addButton(withTitle: "Import")
+        confirm.addButton(withTitle: "Cancel")
+
+        guard confirm.runModal() == .alertFirstButtonReturn else { return }
+
+        do {
+            let data = try Data(contentsOf: url)
+            let counts = try persistenceService.importData(from: data)
+            viewModel.loadData()
+
+            let success = NSAlert()
+            success.messageText = "Import Successful"
+            success.informativeText = "Imported \(counts.todos) todos and \(counts.recurring) recurring todos."
+            success.runModal()
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Import Failed"
+            alert.informativeText = error.localizedDescription
+            alert.runModal()
+        }
     }
 
     private func clearAllData() {

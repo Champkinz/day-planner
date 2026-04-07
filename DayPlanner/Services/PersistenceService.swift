@@ -144,4 +144,28 @@ class PersistenceService {
         try? fileManager.removeItem(at: recurringTodosURL)
         try? fileManager.removeItem(at: todosURL)
     }
+
+    // MARK: - Export / Import
+
+    struct BackupData: Codable {
+        let todos: [Todo]
+        let recurringTodos: [RecurringTodo]
+        let exportedAt: Date
+    }
+
+    func exportData() throws -> Data {
+        let backup = BackupData(
+            todos: loadTodos(),
+            recurringTodos: loadRecurringTodos(),
+            exportedAt: Date()
+        )
+        return try encoder.encode(backup)
+    }
+
+    func importData(from data: Data) throws -> (todos: Int, recurring: Int) {
+        let backup = try decoder.decode(BackupData.self, from: data)
+        saveTodos(backup.todos)
+        saveRecurringTodos(backup.recurringTodos)
+        return (backup.todos.count, backup.recurringTodos.count)
+    }
 }
