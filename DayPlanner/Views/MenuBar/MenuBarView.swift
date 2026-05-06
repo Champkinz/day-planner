@@ -24,15 +24,33 @@ struct MenuBarView: View {
 
             Divider()
 
-            // Todo List
-            todoList
+            // Content
+            switch viewModel.viewMode {
+            case .list:
+                todoList
+            case .kanban:
+                kanbanList
+            }
 
             Divider()
 
             // Footer
             footer
         }
-        .frame(width: 360, height: 500)
+        .frame(width: viewModel.viewMode == .kanban ? 560 : 360, height: 540)
+        .background(
+            ZStack {
+                AppTheme.appBackground
+                LinearGradient(
+                    colors: [
+                        AppTheme.accent.opacity(0.08),
+                        AppTheme.statusDone.opacity(0.05)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        )
         .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 
@@ -73,6 +91,9 @@ struct MenuBarView: View {
             .help("Next day")
 
             Spacer()
+
+            // List/Kanban toggle (genie swirl animation)
+            ViewModeToggleButton(viewMode: $viewModel.viewMode)
 
             // Dark mode toggle
             Button(action: { isDarkMode.toggle() }) {
@@ -120,6 +141,45 @@ struct MenuBarView: View {
         }
     }
 
+    private var kanbanList: some View {
+        Group {
+            if todosForSelectedDate.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "rectangle.3.group")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary.opacity(0.5))
+                    Text("No todos for this day")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                HStack(spacing: 8) {
+                    KanbanColumn(
+                        title: "Todo",
+                        status: .todo,
+                        color: .gray,
+                        todos: viewModel.todos(for: selectedDate, status: .todo)
+                    )
+                    KanbanColumn(
+                        title: "Doing",
+                        status: .doing,
+                        color: .orange,
+                        todos: viewModel.todos(for: selectedDate, status: .doing)
+                    )
+                    KanbanColumn(
+                        title: "Done",
+                        status: .done,
+                        color: .green,
+                        todos: viewModel.todos(for: selectedDate, status: .done)
+                    )
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
+            }
+        }
+    }
+
     private var footer: some View {
         HStack {
             // Quick Stats
@@ -127,13 +187,14 @@ struct MenuBarView: View {
             let total = todosForSelectedDate.count
 
             if total > 0 {
-                HStack(spacing: 4) {
+                HStack(spacing: 5) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundColor(AppTheme.statusDone)
                         .font(.caption)
                     Text("\(completed)/\(total)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.system(.caption, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundColor(.primary.opacity(0.55))
                 }
             }
 
@@ -201,19 +262,19 @@ struct MenuBarTodoItemView: View {
             // Badges
             HStack(spacing: 4) {
                 if todo.status == .doing {
-                    Text("Doing")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.15))
-                        .cornerRadius(4)
+                    Text("DOING")
+                        .font(.system(size: 9, weight: .semibold))
+                        .tracking(0.6)
+                        .foregroundColor(AppTheme.statusDoing)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(AppTheme.statusDoing.opacity(0.15))
+                        .clipShape(Capsule())
                 }
 
                 if todo.type == .recurring {
                     Image(systemName: "repeat")
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppTheme.accent.opacity(0.7))
                         .font(.caption)
                 }
             }

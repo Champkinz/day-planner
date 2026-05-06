@@ -16,25 +16,26 @@ struct StatusIndicator: View {
         switch status {
         case .todo:
             Circle()
-                .strokeBorder(Color.secondary, lineWidth: 1.5)
+                .strokeBorder(AppTheme.statusTodo.opacity(0.7), lineWidth: 1.5)
                 .frame(width: 18, height: 18)
         case .doing:
-            Circle()
-                .fill(Color.orange)
-                .overlay(
-                    Circle()
-                        .strokeBorder(Color.orange, lineWidth: 1.5)
-                )
-                .frame(width: 18, height: 18)
+            ZStack {
+                Circle()
+                    .fill(AppTheme.statusDoing)
+                Circle()
+                    .strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
+            }
+            .frame(width: 18, height: 18)
+            .shadow(color: AppTheme.statusDoing.opacity(0.5), radius: 4, x: 0, y: 1)
         case .done:
-            Circle()
-                .fill(Color.green)
-                .overlay(
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
-                )
-                .frame(width: 18, height: 18)
+            ZStack {
+                Circle()
+                    .fill(AppTheme.statusDone)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            .frame(width: 18, height: 18)
         }
     }
 }
@@ -55,7 +56,7 @@ struct GlassTodoRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             Button {
                 viewModel.setStatus(for: todo, to: nextStatus)
             } label: {
@@ -65,15 +66,16 @@ struct GlassTodoRow: View {
             .buttonStyle(.plain)
             .frame(width: 28, height: 28)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(todo.title)
-                    .font(.body)
+                    .font(.system(size: 13, weight: .medium))
                     .strikethrough(todo.status == .done)
+                    .foregroundColor(todo.status == .done ? .primary.opacity(0.65) : .primary)
 
                 if let description = todo.description, !description.isEmpty {
                     Text(description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.system(.caption, design: .rounded))
+                        .foregroundColor(.primary.opacity(0.55))
                         .lineLimit(1)
                 }
             }
@@ -83,19 +85,20 @@ struct GlassTodoRow: View {
             // Badges
             HStack(spacing: 8) {
                 if todo.status == .doing {
-                    Text("Doing")
-                        .font(.caption2)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.orange.opacity(0.2))
-                        .foregroundColor(.orange)
-                        .cornerRadius(4)
+                    Text("DOING")
+                        .font(.system(size: 9, weight: .semibold))
+                        .tracking(0.6)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(AppTheme.statusDoing.opacity(0.15))
+                        .foregroundColor(AppTheme.statusDoing)
+                        .clipShape(Capsule())
                 }
 
                 if todo.type == .recurring {
                     Image(systemName: "arrow.triangle.2.circlepath")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary.opacity(0.4))
                 }
 
                 if !DateService.shared.isToday(selectedDate) {
@@ -104,19 +107,23 @@ struct GlassTodoRow: View {
                     } label: {
                         Image(systemName: "arrow.right.to.line")
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(AppTheme.accent)
                     }
                     .buttonStyle(.plain)
                     .help("Move to today")
                 }
             }
         }
-        .padding(10)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(.regularMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
+                )
         )
-        .opacity(todo.status == .done ? 0.7 : 1.0)
         .contextMenu {
             todoContextMenu(todo: todo, viewModel: viewModel)
         }
@@ -130,23 +137,41 @@ struct GlassKanbanCard: View {
     @EnvironmentObject var viewModel: TodoListViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(todo.title)
-                .font(.system(size: 13))
-                .lineLimit(2)
-                .strikethrough(todo.status == .done)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 8) {
+                Circle()
+                    .fill(todo.status.themeColor)
+                    .frame(width: 7, height: 7)
+                    .padding(.top, 5)
+                Text(todo.title)
+                    .font(.system(size: 13, weight: .medium))
+                    .lineLimit(3)
+                    .strikethrough(todo.status == .done)
+                    .foregroundColor(todo.status == .done ? .primary.opacity(0.65) : .primary)
+                Spacer(minLength: 0)
+            }
 
             if todo.type == .recurring {
-                Image(systemName: "arrow.triangle.2.circlepath")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 9))
+                    Text("Recurring")
+                        .font(.system(size: 10, design: .rounded))
+                }
+                .foregroundColor(.primary.opacity(0.4))
+                .padding(.leading, 15)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .background(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 10)
                 .fill(.regularMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
+                )
         )
         .help(todo.description ?? "")
         .contextMenu {

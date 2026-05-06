@@ -36,12 +36,13 @@ class MenuBarManager {
 
         // Create popover
         popover = NSPopover()
-        popover?.contentSize = NSSize(width: 360, height: 500)
         popover?.behavior = .transient
-        popover?.contentViewController = NSHostingController(
+        let hostingController = NSHostingController(
             rootView: MenuBarView()
                 .environmentObject(viewModel)
         )
+        hostingController.sizingOptions = [.preferredContentSize]
+        popover?.contentViewController = hostingController
 
         // Update badge initially
         updateBadge()
