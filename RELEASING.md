@@ -1,6 +1,14 @@
 # Releasing DayPlanner
 
-## Quick Release
+## Option 1: Release from GitHub (recommended)
+
+1. Go to **Actions** > **Bump Version & Release** in the GitHub UI
+2. Click **Run workflow**
+3. Enter the new version number (e.g. `1.9.0`) and run
+
+CI auto-bumps `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`, builds, signs with the Sparkle EdDSA key, updates `appcast.xml`, tags, and creates the GitHub Release. No local steps required.
+
+## Option 2: Release from a local tag
 
 1. Update `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `DayPlanner.xcodeproj/project.pbxproj` (both Debug and Release configs)
 2. Commit and push
