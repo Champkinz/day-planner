@@ -3,15 +3,15 @@
   <channel>
     <title>DayPlanner</title>
     <item>
-      <title>Version 1.7.0</title>
-      <sparkle:version>8</sparkle:version>
-      <sparkle:shortVersionString>1.7.0</sparkle:shortVersionString>
-      <pubDate>Tue, 07 Apr 2026 09:56:07 +0000</pubDate>
+      <title>Version 1.8.0</title>
+      <sparkle:version>9</sparkle:version>
+      <sparkle:shortVersionString>1.8.0</sparkle:shortVersionString>
+      <pubDate>Wed, 06 May 2026 04:06:53 +0000</pubDate>
       <enclosure
-        url="https://github.com/Champkinz/day-planner/releases/download/v1.7.0/DayPlanner.zip"
-        length="4886022"
+        url="https://github.com/Champkinz/day-planner/releases/download/v1.8.0/DayPlanner.zip"
+        length="4913065"
         type="application/octet-stream"
-        sparkle:edSignature="70wNouoHwkvI4mCjYndMoIVdSQnxJ8tkvUo8cRgtB02MEQpom9x24qD84cREJsSYvPbAkzIV0goyq6lOnOBjAw=="
+        sparkle:edSignature="7GNdyiMnXFXM1D4ebklz+Lw0+JhBr2uMfxYvX7jVw+CNf28+DASPObzwVCtb3bUc+Mi5BjDyhIDDKElAl35PDA=="
       />
     </item>
   </channel>
